@@ -7,12 +7,21 @@ View controller managing our split view interface.
 
 import Cocoa
 
+class DetailViewContainer: NSView {
+    /** We embed a child view controller into the detail view controller each time a different outline view item is selected.
+        In order for the split view controller to consistently remain in the responder chain, the detail view controller's
+        view property needs to accept first responder status.
+        This is especially important for the consistent valication of the "Show/Hide Sidebar" menu item in the View menu.
+    */
+    override var acceptsFirstResponder: Bool { return true }
+}
+
 class SplitViewController: NSSplitViewController {
     
     private var verticalConstraints: [NSLayoutConstraint] = []
     private var horizontalConstraints: [NSLayoutConstraint] = []
     
-    var treeControllerObserver: NSKeyValueObservation?
+    private var treeControllerObserver: NSKeyValueObservation?
     
     override func viewDidLoad() {
         super.viewDidLoad()
