@@ -2,7 +2,7 @@
 See LICENSE folder for this sample’s licensing information.
 
 Abstract:
-Generic multi-use node object used with NSOutlineView and NSTreeController.
+A generic multiuse node object to use with NSOutlineView and NSTreeController.
 */
 
 import Cocoa
@@ -25,8 +25,8 @@ class Node: NSObject, Codable {
 
 extension Node {
     
-    /** Called by the tree controller to determine is this node is a leaf node,
-     used to determine if the node should have a disclosure triangle.
+    /** The tree controller calls this to determine if this node is a leaf node,
+        use it to determine if the node needs a disclosure triangle.
      */
     @objc dynamic var isLeaf: Bool {
         return type == .document || type == .separator
@@ -37,7 +37,7 @@ extension Node {
     }
     
     var isSpecialGroup: Bool {
-        // A group node is a special node representing either "Pictures" or "Places" as grouped sections.
+        // A group node is a special node that represents either Pictures or Places as grouped sections.
         return (!isURLNode &&
             (title == OutlineViewController.NameConstants.pictures || title == OutlineViewController.NameConstants.places))
     }
@@ -52,7 +52,7 @@ extension Node {
             // If the node has a URL, use it to obtain its icon.
             icon = nodeURL.icon
         } else {
-            // No URL for this node, so determine it's icon generically.
+            // There's no URL for this node, so determine its icon generically.
             let osType = isDirectory ? kGenericFolderIcon : kGenericDocumentIcon
             let iconType = NSFileTypeForHFSTypeCode(OSType(osType))
             icon = NSWorkspace.shared.icon(forFileType: iconType!)
@@ -61,7 +61,7 @@ extension Node {
     }
     
     var canChange: Bool {
-        // You can only change (rename or add to) non-url based directory node.
+        // You can only change (rename or add to) non-URL based directory nodes.
         return isDirectory && url == nil
     }
     

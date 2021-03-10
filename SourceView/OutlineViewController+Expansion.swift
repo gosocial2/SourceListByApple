@@ -2,7 +2,7 @@
 See LICENSE folder for this sample’s licensing information.
 
 Abstract:
-Expansion Restoration Support for OutlineViewController.
+Expansion restoration support for OutlineViewController.
 */
 
 import Cocoa
@@ -33,21 +33,21 @@ extension OutlineViewController {
         return nodeFromIdentifier(anObject: anObject, nodes: treeController.arrangedObjects.children)
     }
 
-    /** When the outline view is restoring the saved expanded items, this method is called for each
-     	expanded item, to translate the archived object to an outline view item.
+    /** When the outline view is restoring the saved expanded items, the system calls this method for each
+     	expanded item to translate the archived object to an outline view item.
      */
 /// - Tag: RestoreExpansion
     func outlineView(_ outlineView: NSOutlineView, itemForPersistentObject object: Any) -> Any? {
-        let node = nodeFromIdentifier(anObject: object)  // Incoming object is the identifier.
+        let node = nodeFromIdentifier(anObject: object)  // The incoming object is the identifier.
         return node
     }
     
-    /** When the outline view is saving the expanded items, this method is called for each expanded
-     	item, to translate the outline view item to an archived object.
+    /** When the outline view is saving the expanded items, the system calls this method for each expanded item
+        to translate the outline view item to an archived object.
      */
 /// - Tag: EncodeExpansion
     func outlineView(_ outlineView: NSOutlineView, persistentObjectForItem item: Any?) -> Any? {
         let node = OutlineViewController.node(from: item!)
-        return node?.identifier // Outgoing object is the identifier.
+        return node?.identifier // The outgoing object is the identifier.
     }
 }

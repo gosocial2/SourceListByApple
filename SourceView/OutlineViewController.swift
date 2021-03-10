@@ -2,27 +2,27 @@
 See LICENSE folder for this sample’s licensing information.
 
 Abstract:
-The master view controller containing the NSOutlineView and NSTreeController.
+The primary view controller that contains the NSOutlineView and NSTreeController.
 */
 
 import Cocoa
 
 class OutlineViewController: NSViewController,
-    							NSTextFieldDelegate, // To respond text field's edit sending.
+    							NSTextFieldDelegate, // To respond to the text field's edit sending.
 								NSUserInterfaceValidations { // To enable/disable menu items for the outline view.
     // MARK: Constants
     
     struct NameConstants {
-        // Default name for added folders and leafs.
+        // The default name for added folders and leafs.
         static let untitled = NSLocalizedString("untitled string", comment: "")
-        // Places group title.
+        // The places group title.
         static let places = NSLocalizedString("places string", comment: "")
-        // Pictures group title.
+        // The pictures group title.
         static let pictures = NSLocalizedString("pictures string", comment: "")
     }
 
     struct NotificationNames {
-        // Notification that the tree controller's selection has changed (used by SplitViewController).
+        // A notification when the tree controller's selection changes. SplitViewController uses this.
         static let selectionChanged = "selectionChangedNotification"
     }
     
@@ -33,7 +33,7 @@ class OutlineViewController: NSViewController,
 
     @IBOutlet weak var outlineView: OutlineView! {
         didSet {
-            // As soon as we have our outline view loaded, we populate its content tree controller.
+            // As soon the outline view loads, populate its content tree controller.
             populateOutlineContents()
         }
     }
@@ -42,15 +42,15 @@ class OutlineViewController: NSViewController,
     
     // MARK: Instance Variables
     
-    // Observer of tree controller when it's selection changes using KVO.
+    // The observer of the tree controller when its selection changes using KVO.
     private var treeControllerObserver: NSKeyValueObservation?
     
-    // Outline view content top-level content (backed by NSTreeController).
+    // The outline view of top-level content. NSTreeController backs this.
     @objc dynamic var contents: [AnyObject] = []
     
-  	var rowToAdd = -1 // A flagged row being added (for later renaming after it was added).
+  	var rowToAdd = -1 // The addition of a flagged row (for later renaming).
     
-    // Directory for accepting promised files.
+    // The directory for accepting promised files.
     lazy var promiseDestinationURL: URL = {
         let promiseDestinationURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("Drops")
         try? FileManager.default.createDirectory(at: promiseDestinationURL, withIntermediateDirectories: true, attributes: nil)
@@ -61,32 +61,29 @@ class OutlineViewController: NSViewController,
     private var fileViewController: FileViewController!
     private var imageViewController: ImageViewController!
     private var multipleItemsViewController: NSViewController!
-    
-    var savedSelection: [IndexPath] = []
-    
+        
     // MARK: View Controller Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // We want to determine the contextual menu for the outline view.
+        // Determine the contextual menu for the outline view.
    		outlineView.customMenuDelegate = self
         
-        // Dragging items out: Set the default operation mask so we can drag (copy) items to outside this app, and delete to the Trash can.
+        // Dragging items out: Set the default operation mask so you can drag (copy) items to outside this app, and delete them in the Trash can.
         outlineView?.setDraggingSourceOperationMask([.copy, .delete], forLocal: false)
         
-        // Register for drag types coming in, we want to receive file promises from Photos, Mail, Safari, etc.
+        // Register for drag types coming in to receive file promises from Photos, Mail, Safari, and so forth.
         outlineView.registerForDraggedTypes(NSFilePromiseReceiver.readableDraggedTypes.map { NSPasteboard.PasteboardType($0) })
         
-        // We are interested in these drag types: our own type (outline row number), and for fileURLs.
+        // You want these drag types: your own type (outline row number), and fileURLs.
 		outlineView.registerForDraggedTypes([
-      		.nodeRowPasteBoardType, // Our internal drag type, the outline view's row number for internal drags.
+      		.nodeRowPasteBoardType, // Your internal drag type, the outline view's row number for internal drags.
             NSPasteboard.PasteboardType.fileURL // To receive file URL drags.
             ])
 
         /** Disclose the two root outline groups (Places and Pictures) at first launch.
-         	With all subsequent launches, these disclosure states will be determined by the
-         	autosave disclosure states.
+         	With all subsequent launches, the autosave disclosure states determine these disclosure states.
          */
         let defaults = UserDefaults.standard
         let initialDisclosure = defaults.string(forKey: "initialDisclosure")
@@ -96,32 +93,32 @@ class OutlineViewController: NSViewController,
             defaults.set("initialDisclosure", forKey: "initialDisclosure")
         }
         
-        // Load the icon view controller from storyboard later use as our Detail view.
+        // Load the icon view controller from the storyboard for later use as your Detail view.
         iconViewController =
             storyboard!.instantiateController(withIdentifier: "IconViewController") as? IconViewController
         iconViewController.view.translatesAutoresizingMaskIntoConstraints = false
         
-        // Load the file view controller from storyboard later use as our Detail view.
+        // Load the file view controller from the storyboard for later use as your Detail view.
         fileViewController =
             storyboard!.instantiateController(withIdentifier: "FileViewController") as? FileViewController
         fileViewController.view.translatesAutoresizingMaskIntoConstraints = false
         
-        // Load the image view controller from storyboard later use as our Detail view.
+        // Load the image view controller from the storyboard for later use as your Detail view.
         imageViewController =
             storyboard!.instantiateController(withIdentifier: "ImageViewController") as? ImageViewController
         imageViewController.view.translatesAutoresizingMaskIntoConstraints = false
         
-        // Load the multiple items selected view controller from storyboard later use as our Detail view.
+        // Load the multiple items selected view controller from the storyboard for later use as your Detail view.
         multipleItemsViewController =
             storyboard!.instantiateController(withIdentifier: "MultipleSelection") as? NSViewController
 		multipleItemsViewController.view.translatesAutoresizingMaskIntoConstraints = false
         
-        /** Note: The following will make our outline view appear with gradient background, and proper
-         	selection to behave like the Finder's side-bar, iTunes, etc.
+        /** Note: The following makes the outline view appear with gradient background and proper
+         	selection to behave like the Finder sidebar, iTunes, and so forth.
          */
-        //outlineView.selectionHighlightStyle = .sourceList // But we already do this in the storyboard.
+        //outlineView.selectionHighlightStyle = .sourceList // But you already do this in the storyboard.
         
-        // Setup observers for the outline view's selection, adding items, and removing items.
+        // Set up observers for the outline view's selection, adding items, and removing items.
         setupObservers()
     }
     
@@ -151,14 +148,14 @@ class OutlineViewController: NSViewController,
                 let parentIndex = parentNode.indexPath
                 treeController.setSelectionIndexPath(parentIndex)
             } else {
-                // No parent exists (we are at the top of tree), so make no selection in our outline.
+                // No parent exists (you are at the top of tree), so make no selection in your outline.
                 let selectionIndexPaths = treeController.selectionIndexPaths
                 treeController.removeSelectionIndexPaths(selectionIndexPaths)
             }
         }
     }
 	
-    // Called by drag and drop from the Finder.
+    // The system calls this by drag and drop from the Finder.
     func addFileSystemObject(_ url: URL, indexPath: IndexPath) {
         let node = OutlineViewController.fileSystemNode(from: url)
         treeController.insert(node, atArrangedObjectIndexPath: indexPath)
@@ -166,7 +163,7 @@ class OutlineViewController: NSViewController,
         if url.isFolder {
             do {
                 node.identifier = NSUUID().uuidString
-                // It's a folder node, find it's children
+                // It's a folder node, so find its children.
                 let fileURLs =
                     try FileManager.default.contentsOfDirectory(at: node.url!,
                                                                 includingPropertiesForKeys: [],
@@ -180,19 +177,19 @@ class OutlineViewController: NSViewController,
                 // No content at this URL.
             }
         } else {
-            // This is just a leaf node, no children to insert.
+            // This is just a leaf node, so there aren't any children to insert.
         }
     }
 
     private func addFileSystemObjects(_ entries: [URL], indexPath: IndexPath) {
-        // First sort the array of URLs.
+        // Sort the array of URLs.
         var sorted = entries
         sorted.sort( by: { $0.lastPathComponent > $1.lastPathComponent })
         
         // Insert the sorted URL array into the tree controller.
         for entry in sorted {
             if entry.isFolder {
-                // It's a folder node, add the folder.
+                // It's a folder node, so add the folder.
                 let node = OutlineViewController.fileSystemNode(from: entry)
                 node.identifier = NSUUID().uuidString
                 treeController.insert(node, atArrangedObjectIndexPath: indexPath)
@@ -213,7 +210,7 @@ class OutlineViewController: NSViewController,
                     // No content at this URL.
                 }
             } else {
-                // It's a leaf node, add the leaf.
+                // It's a leaf node, so add the leaf.
                 addFileSystemObject(entry, indexPath: indexPath)
             }
         }
@@ -229,18 +226,18 @@ class OutlineViewController: NSViewController,
         
         // Get the insertion indexPath from the current selection.
         var insertionIndexPath: IndexPath
-        // If there is no selection, we will add a new group to the end of the contents array.
+        // If there is no selection, add a new group to the end of the content's array.
         if treeController.selectedObjects.isEmpty {
-            // There's no selection so add the folder to the top-level and at the end.
+            // There's no selection, so add the folder to the top-level and at the end.
             insertionIndexPath = IndexPath(index: contents.count)
         } else {
-            /** Get the index of the currently selected node, then add the number its children
-                to the path. This will give us an index which will allow us to add a node to the
-                end of the currently selected node's children array.
+            /** Get the index of the currently selected node, then add the number of its children to the path.
+                This gives you an index that allows you to add a node to the end of the currently
+                selected node's children array.
              */
             insertionIndexPath = treeController.selectionIndexPath!
             if let selectedNode = treeController.selectedObjects[0] as? Node {
-                // User is trying to add a folder on a selected folder, so select add the selection to the children.
+                // The user is trying to add a folder on a selected folder, so add the selection to the children.
                 insertionIndexPath.append(selectedNode.children.count)
             }
         }
@@ -249,64 +246,63 @@ class OutlineViewController: NSViewController,
     }
     
     private func addNode(_ node: Node) {
-        // Find the selection to insert our node.
+        // Find the selection to insert the node.
         var indexPath: IndexPath
         if treeController.selectedObjects.isEmpty {
-            // No selection, just add the child to the end of the tree.
+            // No selection, so just add the child to the end of the tree.
             indexPath = IndexPath(index: contents.count)
         } else {
-            // We have a selection, insert at the end of the selection.
+            // There's a selection, so insert the child at the end of the selection.
             indexPath = treeController.selectionIndexPath!
             if let node = treeController.selectedObjects[0] as? Node {
                 indexPath.append(node.children.count)
             }
         }
         
-        // The child to insert has a valid URL, use its display name as the node title.
-        // We need to take the url and obtain the display name (non escaped with no extension).
+        // The child to insert has a valid URL, so use its display name as the node title.
+        // Take the URL and obtain the display name (nonescaped with no extension).
         if node.isURLNode {
             node.title = node.url!.localizedName
         }
         
-        // The user is adding a child node, tell the controller directly.
+        // The user is adding a child node, so tell the controller directly.
         treeController.insert(node, atArrangedObjectIndexPath: indexPath)
         
         if !node.isDirectory {
-        	// For leaf children we need to select it's parent for further additions.
+        	// For leaf children, select its parent for further additions.
         	selectParentFromSelection()
         }
     }
     
     // MARK: Outline Content
     
-    // Unique nodeIDs for the two top level group nodes.
+    // Unique nodeIDs for the two top-level group nodes.
     static let picturesID = "1000"
     static let placesID = "1001"
     
     private func addPlacesGroup() {
-        // Add the "Places" outline group section.
-        // Note that the nodeID and expansion restoration ID are shared.
+        // Add the Places outline group section.
+        // Note that the system shares the nodeID and the expansion restoration ID.
         
         addGroupNode(OutlineViewController.NameConstants.places, identifier: OutlineViewController.placesID)
         
-        // Add the Applications folder inside "Places".
+        // Add the Applications folder inside Places.
         let appsURLs = FileManager.default.urls(for: .applicationDirectory, in: .localDomainMask)
         addFileSystemObject(appsURLs[0], indexPath: IndexPath(indexes: [0, 0]))
         
-        treeController.setSelectionIndexPath(nil) // Start back up to the root level.
+        treeController.setSelectionIndexPath(nil) // Start back at the root level.
     }
     
-    // Populate the tree controller from disk-based dictionary (DataSource.plist).
+    // Populate the tree controller from the disk-based dictionary (DataSource.plist).
     private func addPicturesGroup() {
-        // Add the "Pictures" section.
+        // Add the Pictures section.
         addGroupNode(OutlineViewController.NameConstants.pictures, identifier: OutlineViewController.picturesID)
- 
-/// - Tag: DataSource
+
         guard let newPlistURL = Bundle.main.url(forResource: "DataSource", withExtension: "plist") else {
             fatalError("Failed to resolve URL for `DataSource.plist` in bundle.")
         }
         do {
-            // Populate the outline view with the plist content.
+            // Populate the outline view with the .plist file content.
             struct OutlineData: Decodable {
                 let children: [Node]
             }
@@ -315,7 +311,7 @@ class OutlineViewController: NSViewController,
             let data = try Data(contentsOf: newPlistURL)
             let decodedData = try plistDecoder.decode(OutlineData.self, from: data)
             for node in decodedData.children {
-                // Recursively add further content from the given node.
+                // Recursively add further content from the specified node.
                 addNode(node)
                 if node.type == .container {
                     selectParentFromSelection()
@@ -324,14 +320,14 @@ class OutlineViewController: NSViewController,
         } catch {
             fatalError("Failed to load `DataSource.plist` in bundle.")
         }
-        treeController.setSelectionIndexPath(nil) // Start back up to the root level.
+        treeController.setSelectionIndexPath(nil) // Start back at the root level.
     }
     
     private func populateOutlineContents() {
-        // Add the Places grouping and it's content.
+        // Add the Places grouping and its content.
         addPlacesGroup()
         
-        // Add the Pictures grouing and it's outline content.
+        // Add the Pictures grouping and its outline content.
         addPicturesGroup()
     }
     
@@ -360,13 +356,13 @@ class OutlineViewController: NSViewController,
         return alert
     }
     
-    // Called from handleContextualMenu() or the remove button.
+    // The system calls this from handleContextualMenu() or the remove button.
     func removeItems(_ itemsToRemove: [Node]) {
         // Confirm the removal operation.
         let confirmAlert = removalConfirmAlert(itemsToRemove)
         confirmAlert.beginSheetModal(for: view.window!) { returnCode in
             if returnCode == NSApplication.ModalResponse.alertFirstButtonReturn {
-                // Remove the given set of node objects from the tree controller.
+                // Remove the specified set of node objects from the tree controller.
                 var indexPathsToRemove = [IndexPath]()
                 for item in itemsToRemove {
                     if let indexPath = self.treeController.indexPathOfObject(anObject: item) {
@@ -394,18 +390,18 @@ class OutlineViewController: NSViewController,
     }
  
 /// - Tag: Delete
-    // User chose the Delete menu item or pressed the delete key.
+    // The user chose the Delete menu item or pressed the Delete key.
     @IBAction func delete(_ sender: AnyObject) {
         removeItems()
     }
     
-    // Called from handleContextualMenu(), or add group button.
+    // The system calls this from handleContextualMenu() or the add group button.
    func addFolderAtItem(_ item: NSTreeNode) {
-        // Obtain the base node at the given outline view's row number, and the indexPath of that base node.
+        // Obtain the base node at the specified outline view's row number, and the indexPath of that base node.
         guard let rowItemNode = OutlineViewController.node(from: item),
             let itemNodeIndexPath = treeController.indexPathOfObject(anObject: rowItemNode) else { return }
     
-        // We are inserting a new group folder at the node index path, add it to the end.
+        // You're inserting a new group folder at the node index path, so add it to the end.
         let indexPathToInsert = itemNodeIndexPath.appending(rowItemNode.children.count)
     
         // Create an empty folder node.
@@ -415,11 +411,11 @@ class OutlineViewController: NSViewController,
         nodeToAdd.type = .container
         treeController.insert(nodeToAdd, atArrangedObjectIndexPath: indexPathToInsert)
     
-        // Flag the row we are adding (for later renaming after the row was added).
+        // Flag the row you're adding (for later renaming).
         rowToAdd = outlineView.row(forItem: item) + rowItemNode.children.count
     }
 
-    // Called from handleContextualMenu() or add picture button.
+    // The system calls this from handleContextualMenu() or the add picture button.
     func addPictureAtItem(_ item: Node) {
         // Present an open panel to choose a picture to display in the outline view.
         let openPanel = NSOpenPanel()
@@ -431,7 +427,7 @@ class OutlineViewController: NSViewController,
         openPanel.prompt = NSLocalizedString("open panel prompt", comment: "") // Set the Choose button title.
         openPanel.canCreateDirectories = false
         
-        // We should allow choosing all kinds of image files that CoreGraphics can handle.
+        // Allow choosing all kinds of image files that CoreGraphics can handle.
         if let imageTypes = CGImageSourceCopyTypeIdentifiers() as? [String] {
             openPanel.allowedFileTypes = imageTypes
         }
@@ -444,9 +440,9 @@ class OutlineViewController: NSViewController,
                 node.url = openPanel.url
                 node.title = node.url!.localizedName
                 
-                // Get the indexPath of the folder being added to.
+                // Get the indexPath of the folder you're adding to.
                 if let itemNodeIndexPath = self.treeController.indexPathOfObject(anObject: item) {
-                    // We are inserting a new picture at the item node index path.
+                    // You're inserting a new picture at the item node index path.
                     let indexPathToInsert = itemNodeIndexPath.appending(IndexPath(index: 0))
                     self.treeController.insert(node, atArrangedObjectIndexPath: indexPathToInsert)
                 }
@@ -457,55 +453,54 @@ class OutlineViewController: NSViewController,
     // MARK: Notifications
     
     private func setupObservers() {
-        // Notification to add a folder.
+        // A notification to add a folder.
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(addFolder(_:)),
             name: Notification.Name(WindowViewController.NotificationNames.addFolder),
             object: nil)
         
-        // Notification to add a picture.
+        // A notification to add a picture.
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(addPicture(_:)),
             name: Notification.Name(WindowViewController.NotificationNames.addPicture),
             object: nil)
         
-        // Notification to remove an item.
+        // A notification to remove an item.
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(removeItem(_:)),
             name: Notification.Name(WindowViewController.NotificationNames.removeItem),
             object: nil)
         
-        // Listen to our treeController's selection changed so we can inform clients to react to selection changes.
+        // Listen to the treeController's selection change so you inform clients to react to selection changes.
         treeControllerObserver =
             treeController.observe(\.selectedObjects, options: [.new]) {(treeController, change) in
                             // Post this notification so other view controllers can react to the selection change.
-                            // (Interested view controllers are: WindowViewController and SplitViewController)
+                            // Interested view controllers are: WindowViewController and SplitViewController.
                             NotificationCenter.default.post(
                                 name: Notification.Name(OutlineViewController.NotificationNames.selectionChanged),
                                 object: treeController)
                 
-                            // Remember the saved selection for restoring selection state later.
-                            self.savedSelection = treeController.selectionIndexPaths
+                            // Save the outline selection state for later when the app relaunches.
                             self.invalidateRestorableState()
         				}
     }
     
-    // Notification sent from WindowViewController class, to add a generic folder to the current selection.
+    // A notification that the WindowViewController class sends to add a generic folder to the current selection.
     @objc
     private func addFolder(_ notif: Notification) {
-        // Add the folder with "untitled" title.
+        // Add the folder with the "untitled" title.
         let selectedRow = outlineView.selectedRow
         if let folderToAddNode = self.outlineView.item(atRow: selectedRow) as? NSTreeNode {
             addFolderAtItem(folderToAddNode)
         }
-        // Flag the row we are adding (for later renaming after the row was added).
+        // Flag the row you're adding (for later renaming).
         rowToAdd = outlineView.selectedRow
     }
     
-    // Notification sent from WindowViewController class, to add a picture to the selected folder node.
+    // A notification that the WindowViewController class sends to add a picture to the selected folder node.
     @objc
     private func addPicture(_ notif: Notification) {
         let selectedRow = outlineView.selectedRow
@@ -516,7 +511,7 @@ class OutlineViewController: NSViewController,
         }
     }
     
-    // Notification sent from WindowViewController remove button, to remove a selected item from the outline view.
+    // A notification that the WindowViewController remove button sends to remove a selected item from the outline view.
     @objc
     private func removeItem(_ notif: Notification) {
         removeItems()
@@ -537,7 +532,6 @@ class OutlineViewController: NSViewController,
     
     // MARK: NSValidatedUserInterfaceItem
 
-/// - Tag: DeleteValidation
     func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
         if item.action == #selector(delete(_:)) {
             return !treeController.selectedObjects.isEmpty
@@ -547,7 +541,7 @@ class OutlineViewController: NSViewController,
 
     // MARK: Detail View Management
     
-    // Used to decide which view controller to use as the detail.
+    // Use this to decide which view controller to use as the detail.
     func viewControllerForSelection(_ selection: [NSTreeNode]?) -> NSViewController? {
         guard let outlineViewSelection = selection else { return nil }
         
@@ -558,27 +552,27 @@ class OutlineViewController: NSViewController,
             // No selection.
             viewController = nil
         case 1:
-            // Single selection.
+            // A single selection.
             if let node = OutlineViewController.node(from: selection?[0] as Any) {
                 if let url = node.url {
-                    // Node has a URL.
+                    // The node has a URL.
                     if node.isDirectory {
-                        // It is a folder url.
+                        // It is a folder URL.
                         iconViewController.url = url
                         viewController = iconViewController
                     } else {
-                        // It is a file url.
+                        // It is a file URL.
                         fileViewController.url = url
                         viewController = fileViewController
                     }
                 } else {
-                    // Node does not have a URL.
+                    // The node doesn't have a URL.
                     if node.isDirectory {
-                        // It is a non-url grouping of pictures.
+                        // It is a non-URL grouping of pictures.
                         iconViewController.nodeContent = node
                         viewController = iconViewController
                     } else {
-                        // It is a non-url image document, so load its image.
+                        // It is a non-URL image document, so load its image.
                         if let loadedImage = NSImage(named: node.title) {
                             imageViewController.fileImageView?.image = loadedImage
                         } else {
@@ -589,7 +583,7 @@ class OutlineViewController: NSViewController,
                 }
             }
         default:
-            // Selection is multiple or more than one.
+            // The selection is multiple or more than one.
             viewController = multipleItemsViewController
         }
 
@@ -598,7 +592,7 @@ class OutlineViewController: NSViewController,
     
     // MARK: File Promise Drag Handling
 
-    /// Queue used for reading and writing file promises.
+    /// The queue for reading and writing file promises.
     lazy var workQueue: OperationQueue = {
         let providerQueue = OperationQueue()
         providerQueue.qualityOfService = .userInitiated

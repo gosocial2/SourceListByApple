@@ -7,12 +7,12 @@ Contextual menu support for OutlineViewController.
 
 import Cocoa
 
-/** Support for outline view contextual menu.
- This allows the delegate to determine the contextual menu for the outline view.
+/** Support for the outline view contextual menu.
+    This allows the delegate to determine the contextual menu for the outline view.
  */
 protocol CustomMenuDelegate: AnyObject {
     
-    // Construct a context menu based the current selected rows.
+    // Construct a context menu from the current selected rows.
     func outlineViewMenuForRows(_ outlineView: NSOutlineView, rows: IndexSet) -> NSMenu?
 }
 
@@ -28,7 +28,7 @@ extension OutlineViewController: CustomMenuDelegate {
     @objc
     // The sender is the menu item issuing the contextual menu command.
     private func handleContextualMenu(_ sender: AnyObject) {
-        // Expect the sender to be an NSMenuItem, and it's representedObject to be an IndexSet (of nodes).
+        // Expect the sender to be an NSMenuItem, and its representedObject to be an IndexSet (of nodes).
         guard let menuItem = sender as? NSMenuItem,
             let selectionIndexes = menuItem.representedObject as? IndexSet else { return }
 
@@ -42,7 +42,7 @@ extension OutlineViewController: CustomMenuDelegate {
             }
             removeItems(nodesToRemove)
         } else {
-            // Expect the first item, first item being a tree node, and ultimately a Node class.
+            // Expect the first item, the first item being a tree node and ultimately a Node class.
             guard let item = selectionIndexes.first,
                 let rowItem = outlineView.item(atRow: item),
                 let node = OutlineViewController.node(from: rowItem) else { return }
@@ -77,10 +77,10 @@ extension OutlineViewController: CustomMenuDelegate {
         }
     }
     
-    /** Utility factory function to make a contextual menu item from inputs.
-    	Each contextual menu item is constructed with:
-    		tag: Used to determine the what the menu item actually does.
-    		representedObject: the set of rows to act on.
+    /** A utility factory function to make a contextual menu item from inputs.
+    	The system constructs each contextual menu item with:
+    		tag: To determine what the menu item actually does.
+    		representedObject: The set of rows to act on.
 	*/
     private func contextMenuItem(_ title: String, tag: Int, representedObject: Any) -> NSMenuItem {
         let menuItem = NSMenuItem(title: title,
@@ -91,17 +91,17 @@ extension OutlineViewController: CustomMenuDelegate {
         return menuItem
     }
     
-    /** Return the contextual menu for the given set of outline view rows.
-		Each contextual menu item is constructed with:
- 			tag: Used to determine the what the menu item actually does.
- 			representedObject: the set of rows to act on.
+    /** Return the contextual menu for the specified set of outline view rows.
+		The system constructs each contextual menu item with:
+ 			tag: To determine what the menu item actually does.
+ 			representedObject: The set of rows to act on.
  	*/
     func outlineViewMenuForRows(_ outlineView: NSOutlineView, rows: IndexSet) -> NSMenu? {
         let contextMenu = NSMenu(title: "")
         
-        // For multiple selected rows, we only offer the "remove" command.
+        // For multiple selected rows, you only offer the remove command.
         if rows.count > 1 {
-            // Contextual menu for mutiple selection.
+            // A contextual menu for mutiple selection.
             let removeMenuItemTitle = NSLocalizedString("context remove string multiple", comment: "")
             contextMenu.addItem(contextMenuItem(removeMenuItemTitle,
                                                 tag: MenuItemTags.removeTag.rawValue,
@@ -109,14 +109,14 @@ extension OutlineViewController: CustomMenuDelegate {
         } else {
             // Contextual menu for single selection.
             
-            // We must have a selected row.
+            // You must have a selected row.
             guard !rows.isEmpty,
-                // We must have an item at that row.
+                // You must have an item at that row.
                 let item = outlineView.item(atRow: rows.first!),
-                	// We must have a node from that item.
+                	// You must have a node from that item.
                 	let node = OutlineViewController.node(from: item) else { return contextMenu }
             
-            // Item is a non-url file object, so we can remove or rename it.
+            // The item is a non-URL file object, so you can remove or rename it.
             //
    			let removeItemFormat = NSLocalizedString("context remove string", comment: "")
             let removeMenuItemTitle = String(format: removeItemFormat, node.title)
@@ -133,7 +133,7 @@ extension OutlineViewController: CustomMenuDelegate {
             }
             
             if node.canAddTo {
-                // Item is a container we can add to.
+                // The item is a container you can add to.
                 contextMenu.addItem(contextMenuItem(NSLocalizedString("add picture", comment: ""),
                                                     tag: MenuItemTags.addPictureTag.rawValue,
                                                     representedObject: rows))

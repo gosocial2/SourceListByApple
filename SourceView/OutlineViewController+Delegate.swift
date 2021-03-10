@@ -2,20 +2,20 @@
 See LICENSE folder for this sample’s licensing information.
 
 Abstract:
-NSOutlineViewDelegate support OutlineViewController.
+NSOutlineViewDelegate support for OutlineViewController.
 */
 
 import Cocoa
 
 extension OutlineViewController: NSOutlineViewDelegate {
     
-    // Is the outline view item a group node? (not a folder but a group with Hide/Show buttons).
+    // Is the outline view item a group node? Not a folder but a group, with Hide/Show buttons.
     func outlineView(_ outlineView: NSOutlineView, isGroupItem item: Any) -> Bool {
         let node = OutlineViewController.node(from: item)
         return node!.isSpecialGroup
     }
     
-    // Should we select the outline view item? (no selection for special groupings or separators).
+    // Should you select the outline view item? No selection for special groupings or separators.
     func outlineView(_ outlineView: NSOutlineView, shouldSelectItem item: Any) -> Bool {
         if let node = OutlineViewController.node(from: item) {
             return !node.isSpecialGroup && !node.isSeparator
@@ -43,36 +43,36 @@ extension OutlineViewController: NSOutlineViewDelegate {
         guard let node = OutlineViewController.node(from: item) else { return view }
         
         if node.isSeparator {
-            // The row is a separator node, make a custom view for it,.
+            // The row is a separator node, so make a custom view for it,.
             if let separator =
                 outlineView.makeView(
                     withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "Separator"), owner: self) as? SeparatorView {
                 return separator
             }
         } else if self.outlineView(outlineView, isGroupItem: item) {
-            // The row is a group node, return NSTableCellView as a special group row.
+            // The row is a group node, so return NSTableCellView as a special group row.
             view = outlineView.makeView(
                 withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "GroupCell"), owner: self) as? NSTableCellView
             view?.textField?.stringValue = node.title.uppercased()
         } else {
-            // The row is a regular outline node, return NSTableCellView with an image and title
+            // The row is a regular outline node, so return NSTableCellView with an image and title.
             view = outlineView.makeView(
                 withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "MainCell"), owner: self) as? NSTableCellView
             
             view?.textField?.stringValue = node.title
             view?.imageView?.image = node.nodeIcon
 
-            // Folder titles are editable only if they do not have a file URL,
-            // (We don't want users to rename file system-based nodes).
+            // Folder titles are editable only if they don't have a file URL,
+            // You don't want users to rename file system-based nodes.
             view?.textField?.isEditable = node.canChange
         }
 
         return view
     }
     
-    // An outline row view was just inserted.
+    // The user inserted an outline view row.
     func outlineView(_ outlineView: NSOutlineView, didAdd rowView: NSTableRowView, forRow row: Int) {
-        // Are we adding a newly inserted row that needs a new name?
+        // Are you adding a newly inserted row that needs a new name?
         if rowToAdd != -1 {
             // Force-edit the newly added row's name.
             if let view = outlineView.view(atColumn: 0, row: rowToAdd, makeIfNecessary: false) {

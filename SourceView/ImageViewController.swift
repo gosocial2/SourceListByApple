@@ -2,7 +2,7 @@
 See LICENSE folder for this sample’s licensing information.
 
 Abstract:
-View controller object to host the UI for an image.
+A ciew controller object to host the UI for an image.
 */
 
 import Cocoa

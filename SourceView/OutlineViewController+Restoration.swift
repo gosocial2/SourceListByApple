@@ -2,7 +2,7 @@
 See LICENSE folder for this sample’s licensing information.
 
 Abstract:
-State Restoration Support for OutlineViewController.
+State restoration support for OutlineViewController.
 */
 
 import Foundation
@@ -11,31 +11,33 @@ import Foundation
 
 extension OutlineViewController {
     
-    // Restorable key for the currently selected outline node on state restoration.
+    // A restorable key for the currently selected outline node on state restoration.
     private static let savedSelectionKey = "savedSelectionKey"
 
-    /// Key paths for window restoration (including our view controller).
+    /// The key paths for window restoration (including the view controller).
     override class var restorableStateKeyPaths: [String] {
         var keys = super.restorableStateKeyPaths
         keys.append(savedSelectionKey)
         return keys
     }
 
-    /// Encode state. Helps save the restorable state of this view controller.
+    /// An encode state that helps save the restorable state of this view controller.
     override func encodeRestorableState(with coder: NSCoder) {
-        let selectedObjects = treeController.selectionIndexPaths
-        coder.encode(selectedObjects, forKey: OutlineViewController.savedSelectionKey)
+        coder.encode(treeController.selectionIndexPaths, forKey: OutlineViewController.savedSelectionKey)
         super.encodeRestorableState(with: coder)
     }
 
-    /// Decode state. Helps restore any previously stored state.
+    /** A decode state that helps restore any previously stored state.
+        Note that when "Close windows when quitting an app" is in a selected state in the System Preferences General pane,
+        selection restoration works if you choose Option-Command-Quit.
+    */
     override func restoreState(with coder: NSCoder) {
         super.restoreState(with: coder)
+        
         // Restore the selected indexPaths.
         if let savedSelectedIndexPaths =
             coder.decodeObject(forKey: OutlineViewController.savedSelectionKey) as? [IndexPath] {
-            savedSelection = savedSelectedIndexPaths
-            treeController.setSelectionIndexPaths(savedSelection)
+            treeController.setSelectionIndexPaths(savedSelectedIndexPaths)
         }
     }
     

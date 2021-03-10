@@ -2,7 +2,7 @@
 See LICENSE folder for this sample’s licensing information.
 
 Abstract:
-View controller object to host the UI for file information.
+A view controller object to host the UI for file information.
 */
 
 import Cocoa
@@ -18,7 +18,7 @@ class FileViewController: NSViewController {
     @IBOutlet private var fileImageView: NSImageView!
     
     @objc var url: URL? {
-        // Listen for changes in the file url.
+        // Listen for changes in the file URL.
         didSet {
             // The file icon.
             if let iconImage = url?.icon {
@@ -32,7 +32,7 @@ class FileViewController: NSViewController {
             modDate.stringValue = (url!.modificationDate != nil) ? url!.modificationDate!.description : "-"
             fileKindString.stringValue = url!.kind
             
-            // Setup the image view if in fact the url points to an image file.
+            // Set up the image view if the URL points to an image file.
             if let image = NSImage(contentsOf: url!) {
                 fileImageView.image = image
                 fileImageView.isHidden = false

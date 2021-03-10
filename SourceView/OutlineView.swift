@@ -29,13 +29,13 @@ class OutlineView: NSOutlineView {
         super.mouseDown(with: event)
         
         if !contextualRect.isEmpty {
-            // Clear the highlight if clicked away form the menu.
+            // Clear the highlight if the user clicks away from the menu.
             contextualRect = NSRect()
             setNeedsDisplay(contextualRect)
         }
     }
     
-    // Our view is asking for a contextual menu representation.
+    // The view is asking for a contextual menu representation.
     override func menu(for event: NSEvent) -> NSMenu? {
         // Reset the contextual menu frame for next use.
         contextualRect = NSRect()
@@ -50,14 +50,14 @@ class OutlineView: NSOutlineView {
             }
         }
         
-        setNeedsDisplay(contextualRect) // Draw the highlight rect if needed.
+        setNeedsDisplay(contextualRect) // Draw the highlight rectangle if necessary.
         
         if contextualRect.isEmpty {
             // The contextual menu operates on the current selection.
             // This calls our contextual menu delegate (OutlineViewController).
             return customMenuDelegate?.outlineViewMenuForRows(self, rows: selectedRowIndexes)
         } else {
-            // The contexual menu operates on the target row that was cmd-clicked outside of the selection.
+            // The contexual menu operates on the target row that the user Command-clicked outside of the selection.
             let selectedRowIndexes = IndexSet(arrayLiteral: targetRow)
             // This calls our contextual menu delegate (OutlineViewController).
             return customMenuDelegate?.outlineViewMenuForRows(self, rows: selectedRowIndexes)

@@ -2,14 +2,14 @@
 See LICENSE folder for this sample’s licensing information.
 
 Abstract:
-Helper extensions OutlineViewController.
+Helper extensions for OutlineViewController.
 */
 
 import Cocoa
 
 extension OutlineViewController {
     
-    // Returns a generic node (folder or leaf) from a given url.
+    // Returns a generic node (folder or leaf) from a specified URL.
     class func fileSystemNode(from url: URL) -> Node {
         let node = Node()
         node.url = url
@@ -19,13 +19,13 @@ extension OutlineViewController {
         } else {
             node.type = .document
         }
-        // Figure out the node's name based on the URL.
+        // Figure out the node's name from the URL.
         node.title = url.localizedName
         
         return node
     }
     
-    // Return a Node class from the given outline view item, through it's representedObject.
+    // Return a Node class from the specified outline view item through its representedObject.
     class func node(from item: Any) -> Node? {
         if let treeNode = item as? NSTreeNode, let node = treeNode.representedObject as? Node {
             return node
@@ -63,7 +63,7 @@ extension NSTreeController {
 
 extension NSImage {
     
-    // Returns Data version of NSImage.
+    // Returns the Data version of NSImage.
     func pngData() -> Data? {
         var data: Data?
         if let tiffRep = tiffRepresentation {
@@ -79,7 +79,7 @@ extension NSImage {
 
 extension URL {
     
-    // Returns true if this url is a file system container (packages are not considered containers).
+    // Returns true if this URL is a file system container (packages aren't containers).
     var isFolder: Bool {
         var isFolder = false
         if let resources = try? resourceValues(forKeys: [.isDirectoryKey, .isPackageKey]) {
@@ -104,7 +104,7 @@ extension URL {
                 }
             }
         } else {
-            // Can't find the type identifier, check further by extension.
+            // Can't find the type identifier, so check further by extension.
             let imageFormats = ["jpg", "jpeg", "png", "gif", "tiff"]
             let ext = pathExtension
             isImage = imageFormats.contains(ext)
@@ -135,7 +135,7 @@ extension URL {
                 icon = effectiveIcon
             }
         } else {
-            // Failed to not find the icon from the URL, make a generic one.
+            // Failed to not find the icon from the URL, so make a generic one.
             let osType = isFolder ? kGenericFolderIcon : kGenericDocumentIcon
             let iconType = NSFileTypeForHFSTypeCode(OSType(osType))
             icon = NSWorkspace.shared.icon(forFileType: iconType!)
@@ -149,7 +149,7 @@ extension URL {
         if let fileNameResource = try? resourceValues(forKeys: [.localizedNameKey]) {
             localizedName = fileNameResource.localizedName!
         } else {
-            // Failed to get the localized name, use it's last path component as the name.
+            // Failed to get the localized name, so use it's last path component as the name.
             localizedName = lastPathComponent
         }
         return localizedName

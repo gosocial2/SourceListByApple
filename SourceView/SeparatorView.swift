@@ -2,7 +2,7 @@
 See LICENSE folder for this sample’s licensing information.
 
 Abstract:
-Custom table row view to draw a separator.
+A custom table row view to draw a separator.
 */
 
 import Cocoa
