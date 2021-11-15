@@ -6,6 +6,7 @@ A generic multiuse node object to use with NSOutlineView and NSTreeController.
 */
 
 import Cocoa
+import UniformTypeIdentifiers
 
 enum NodeType: Int, Codable {
     case container
@@ -53,9 +54,14 @@ extension Node {
             icon = nodeURL.icon
         } else {
             // There's no URL for this node, so determine its icon generically.
-            let osType = isDirectory ? kGenericFolderIcon : kGenericDocumentIcon
-            let iconType = NSFileTypeForHFSTypeCode(OSType(osType))
-            icon = NSWorkspace.shared.icon(forFileType: iconType!)
+            if #available(macOS 11.0, *) {
+                let type = isDirectory ? UTType.folder : UTType.image
+                icon = NSWorkspace.shared.icon(for: type)
+            } else {
+                let osType = isDirectory ? kGenericFolderIcon : kGenericDocumentIcon
+                let iconType = NSFileTypeForHFSTypeCode(OSType(osType))
+                icon = NSWorkspace.shared.icon(forFileType: iconType!)
+            }
         }
         return icon
     }

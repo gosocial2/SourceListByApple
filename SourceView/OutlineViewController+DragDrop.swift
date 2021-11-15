@@ -6,6 +6,7 @@ Drag-and-drop support for OutlineViewController.
 */
 
 import Cocoa
+import UniformTypeIdentifiers // for UTType
 
 // Drag-and-drop support, the custom pasteboard type.
 extension NSPasteboard.PasteboardType {
@@ -118,7 +119,13 @@ extension OutlineViewController: NSOutlineViewDataSource {
         
         if isPromisable {
             // Start by assuming a leaf node is a built-in image (PNG file).
-            var nodeFileType = kUTTypePNG as String
+            var nodeFileType: String
+            
+            if #available(macOS 11.0, *) {
+                nodeFileType = UTType.image.identifier
+            } else {
+                nodeFileType = kUTTypePNG as String
+            }
             
             var urlString = ""
             // Find out if the leaf node has a URL. If so, obtain its string value and its type.
@@ -127,7 +134,7 @@ extension OutlineViewController: NSOutlineViewDataSource {
                     nodeFileType = url.fileType
                     urlString = url.absoluteString
                 } else {
-                    // It's a nonimage file, and you don't promise nonimage files.
+                    // It's a non-image file, and you don't promise nonimage files.
                     return nil
                 }
             }

@@ -58,7 +58,7 @@ class OutlineView: NSOutlineView {
             return customMenuDelegate?.outlineViewMenuForRows(self, rows: selectedRowIndexes)
         } else {
             // The contexual menu operates on the target row that the user Command-clicked outside of the selection.
-            let selectedRowIndexes = IndexSet(arrayLiteral: targetRow)
+            let selectedRowIndexes = IndexSet([targetRow])
             // This calls our contextual menu delegate (OutlineViewController).
             return customMenuDelegate?.outlineViewMenuForRows(self, rows: selectedRowIndexes)
     	}

@@ -6,6 +6,7 @@ The primary view controller that contains the NSOutlineView and NSTreeController
 */
 
 import Cocoa
+import UniformTypeIdentifiers // for UTType
 
 class OutlineViewController: NSViewController,
     							NSTextFieldDelegate, // To respond to the text field's edit sending.
@@ -427,9 +428,13 @@ class OutlineViewController: NSViewController,
         openPanel.prompt = NSLocalizedString("open panel prompt", comment: "") // Set the Choose button title.
         openPanel.canCreateDirectories = false
         
-        // Allow choosing all kinds of image files that CoreGraphics can handle.
-        if let imageTypes = CGImageSourceCopyTypeIdentifiers() as? [String] {
-            openPanel.allowedFileTypes = imageTypes
+        // Allow choosing all kinds of image files.
+        if #available(macOS 11.0, *) {
+            openPanel.allowedContentTypes = [UTType.image]
+        } else {
+            if let imageTypes = CGImageSourceCopyTypeIdentifiers() as? [String] {
+                openPanel.allowedFileTypes = imageTypes
+            }
         }
         
         openPanel.beginSheetModal(for: view.window!) { (response) in

@@ -6,6 +6,7 @@ Helper extensions for OutlineViewController.
 */
 
 import Cocoa
+import UniformTypeIdentifiers // for UTType
 
 extension OutlineViewController {
     
@@ -93,13 +94,23 @@ extension URL {
     // Returns true if this URL points to an image file.
     var isImage: Bool {
         var isImage = false
+        
         if let typeIdentifierResource = try? resourceValues(forKeys: [.typeIdentifierKey]) {
-            if let imageTypes = CGImageSourceCopyTypeIdentifiers() as? [Any] {
-                let typeIdentifier = typeIdentifierResource.typeIdentifier
-                for imageType in imageTypes {
-                    if UTTypeConformsTo(typeIdentifier! as CFString, imageType as! CFString) {
-                        isImage = true
-                        break // Done deducing it's an image file.
+            guard let typeIdentifier = typeIdentifierResource.typeIdentifier else { return isImage }
+            
+            if #available(macOS 11.0, *) {
+                if let utType = UTType(typeIdentifier) {
+                    if utType.conforms(to: UTType.image) {
+                        isImage = true // Done deducing it's an image file.
+                    }
+                }
+            } else {
+                if let imageTypes = CGImageSourceCopyTypeIdentifiers() as? [String] {
+                    for imageType in imageTypes {
+                        if UTTypeConformsTo(typeIdentifier as CFString, imageType as CFString) {
+                            isImage = true
+                            break // Done deducing it's an image file.
+                        }
                     }
                 }
             }
@@ -136,9 +147,14 @@ extension URL {
             }
         } else {
             // Failed to not find the icon from the URL, so make a generic one.
-            let osType = isFolder ? kGenericFolderIcon : kGenericDocumentIcon
-            let iconType = NSFileTypeForHFSTypeCode(OSType(osType))
-            icon = NSWorkspace.shared.icon(forFileType: iconType!)
+            if #available(macOS 11.0, *) {
+                let type = isFolder ? UTType.folder : UTType.image
+                icon = NSWorkspace.shared.icon(for: type)
+            } else {
+                let osType = isFolder ? kGenericFolderIcon : kGenericDocumentIcon
+                let iconType = NSFileTypeForHFSTypeCode(OSType(osType))
+                icon = NSWorkspace.shared.icon(forFileType: iconType!)
+            }
         }
         return icon
     }
